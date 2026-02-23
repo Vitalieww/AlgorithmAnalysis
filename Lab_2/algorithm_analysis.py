@@ -58,19 +58,10 @@ class AlgorithmAnalyzer:
         return result
 
     def run_multiple(self, algorithms, sizes, input_types="random", repeat=1, show_plot=True):
-        """
-        Run multiple algorithms across given sizes and input types.
-        - algorithms: list of callables (in-place sorting functions)
-        - sizes: list of integer sizes
-        - input_types: str or list of input_type strings accepted by generate_input
-        - repeat: number of times to run each configuration (results are averaged)
-        - show_plot: whether to display matplotlib plots
-        """
         if isinstance(input_types, str):
             input_types = [input_types]
 
         for input_type in input_types:
-            # collect per-algorithm series
             series = {alg.__name__: {"sizes": [], "time": [], "comparisons": []} for alg in algorithms}
 
             for size in sizes:
@@ -90,15 +81,8 @@ class AlgorithmAnalyzer:
                     series[name]["time"].append(avg_time)
                     series[name]["comparisons"].append(avg_comps)
 
-            # Print results to terminal
-            print(f"Results for input_type: `{input_type}`")
-            print("Algorithm\tSize\tTime(s)\tComparisons")
-            for alg in algorithms:
-                name = alg.__name__
-                for s, t, c in zip(series[name]["sizes"], series[name]["time"], series[name]["comparisons"]):
-                    print(f"{name}\t{s}\t{t:.6f}\t{int(c)}")
+            self._print_table(series, input_type)
 
-            # Plot results
             if show_plot:
                 fig, (ax_time, ax_comp) = plt.subplots(1, 2, figsize=(12, 5))
                 for alg in algorithms:
@@ -117,6 +101,29 @@ class AlgorithmAnalyzer:
                 plt.tight_layout()
                 plt.show()
 
+    def _print_table(self, series, input_type):
+        headers = ["Algorithm", "Size", "Time (s)", "Comparisons"]
+        rows = []
+        for name, data in series.items():
+            for s, t, c in zip(data["sizes"], data["time"], data["comparisons"]):
+                rows.append([name, str(s), f"{t:.6f}", str(int(c))])
+
+        # compute column widths
+        cols = list(zip(*([headers] + rows))) if rows else [(h,) for h in headers]
+        col_widths = [max(len(cell) for cell in col) for col in cols]
+
+        def fmt_row(row):
+            return "| " + " | ".join(cell.ljust(w) for cell, w in zip(row, col_widths)) + " |"
+
+        sep = "+-" + "-+-".join("-" * w for w in col_widths) + "-+"
+
+        print(f"Results for input_type: `{input_type}`")
+        print(sep)
+        print(fmt_row(headers))
+        print(sep)
+        for r in rows:
+            print(fmt_row(r))
+        print(sep)
 
 def generate_input(size, input_type):
     if input_type == "random":
