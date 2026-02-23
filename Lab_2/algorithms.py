@@ -1,24 +1,44 @@
 import math
 
 def quicksort(arr):
-    """In-place QuickSort using last element as pivot."""
-    def _quicksort(low, high):
-        if low < high:
-            # Partition and get pivot index
-            pivot_index = partition(low, high)
-            # Recursively sort left and right
-            _quicksort(low, pivot_index - 1)
-            _quicksort(pivot_index + 1, high)
+    """In-place QuickSort with median-of-three pivot and tail-optimization to avoid deep recursion."""
+    def median_of_three(a, b, c):
+        # return index of median among a, b, c
+        if arr[a] < arr[b]:
+            if arr[b] < arr[c]:
+                return b
+            return c if arr[a] < arr[c] else a
+        else:
+            if arr[a] < arr[c]:
+                return a
+            return c if arr[b] < arr[c] else b
 
     def partition(low, high):
-        pivot = arr[high]      # choose last element as pivot
-        i = low - 1            # index of smaller element
+        # choose pivot as median-of-three and move it to high
+        mid = (low + high) // 2
+        pivot_idx = median_of_three(low, mid, high)
+        arr[pivot_idx], arr[high] = arr[high], arr[pivot_idx]
+        pivot = arr[high]
+        i = low - 1
         for j in range(low, high):
-            if arr[j] < pivot: # if current element is smaller than pivot
+            if arr[j] < pivot:
                 i += 1
-                arr[i], arr[j] = arr[j], arr[i]  # swap
-        arr[i + 1], arr[high] = arr[high], arr[i + 1]  # move pivot to correct position
+                arr[i], arr[j] = arr[j], arr[i]
+        arr[i + 1], arr[high] = arr[high], arr[i + 1]
         return i + 1
+
+    def _quicksort(low, high):
+        # tail-optimized: always recurse on the smaller partition to limit recursion depth
+        while low < high:
+            pivot_index = partition(low, high)
+            left_size = pivot_index - low
+            right_size = high - pivot_index
+            if left_size < right_size:
+                _quicksort(low, pivot_index - 1)
+                low = pivot_index + 1
+            else:
+                _quicksort(pivot_index + 1, high)
+                high = pivot_index - 1
 
     _quicksort(0, len(arr) - 1)
 
