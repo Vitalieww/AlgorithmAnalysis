@@ -1,3 +1,5 @@
+import math
+
 def quicksort(arr):
     """In-place QuickSort using last element as pivot."""
     def _quicksort(low, high):
@@ -92,3 +94,60 @@ def heapify(arr, n, i):
     if largest != i:
         arr[i], arr[largest] = arr[largest], arr[i]
         heapify(arr, n, largest)
+
+
+def introsort(arr):
+    """IntroSort: hybrid of QuickSort and HeapSort."""
+
+    max_depth = 2 * math.floor(math.log2(len(arr))) if len(arr) > 0 else 0
+
+    def _introsort(low, high, depth_limit):
+        if low < high:
+            size = high - low + 1
+            if depth_limit == 0:
+                # Switch to HeapSort for this segment
+                heapsort_segment(arr, low, high)
+            else:
+                # QuickSort partition
+                pivot_index = partition(low, high)
+                _introsort(low, pivot_index - 1, depth_limit - 1)
+                _introsort(pivot_index + 1, high, depth_limit - 1)
+
+    def partition(low, high):
+        pivot = arr[high]
+        i = low - 1
+        for j in range(low, high):
+            if arr[j] < pivot:
+                i += 1
+                arr[i], arr[j] = arr[j], arr[i]
+        arr[i + 1], arr[high] = arr[high], arr[i + 1]
+        return i + 1
+
+    def heapsort_segment(a, start, end):
+        """HeapSort only for a segment of array [start, end]."""
+        n = end - start + 1
+
+        # Build max heap
+        for i in range(n // 2 - 1, -1, -1):
+            heapify_segment(a, n, i, start)
+
+        # Extract elements
+        for i in range(n - 1, 0, -1):
+            a[start + i], a[start] = a[start], a[start + i]
+            heapify_segment(a, i, 0, start)
+
+    def heapify_segment(a, n, i, offset):
+        """Heapify for segment starting at offset."""
+        largest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        if left < n and a[offset + left] > a[offset + largest]:
+            largest = left
+        if right < n and a[offset + right] > a[offset + largest]:
+            largest = right
+        if largest != i:
+            a[offset + i], a[offset + largest] = a[offset + largest], a[offset + i]
+            heapify_segment(a, n, largest, offset)
+
+    _introsort(0, len(arr) - 1, max_depth)
