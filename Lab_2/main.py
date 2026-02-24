@@ -1,5 +1,11 @@
 from algorithm_analysis import AlgorithmAnalyzer
-from algorithms import quicksort, mergesort, heapsort, introsort
+from algorithms import (
+    quicksort, quicksort_improved,
+    mergesort, mergesort_improved,
+    heapsort,  heapsort_improved,
+    introsort, introsort_improved,
+)
+
 
 def main():
     analyzer = AlgorithmAnalyzer()
